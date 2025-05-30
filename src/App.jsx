@@ -2,34 +2,42 @@
 import { useState, useEffect } from 'react';
 import SearchBar from './components/SearchBar';
 import ImageList from './components/ImageList';
+import unsplash from './Api'; // Import từ file Api.jsx
 
 function App() {
   const [searchImages, setSearchImages] = useState({
     term: 'car', // Từ khóa tìm kiếm ban đầu
     images: [], // Danh sách hình ảnh
   });
-  const [loading, setLoading] = useState(false);
-
-  const UNSPLASH_ACCESS_KEY = 'LSZnm2oP0Je58h_98twAXy7StIPi3poj5-yDWgP10As'; // Thay bằng khóa API của bạn
+  const [loading, setLoading] = useState(false); // Thêm state loading
 
   const fetchImages = async (term) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://api.unsplash.com/search/photos?query=${term}&per_page=12`,
-        {
-          headers: {
-            Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-          },
-        }
-      );
-      const data = await response.json();
-      setSearchImages((prev) => ({
-        ...prev,
-        images: data.results,
-      }));
+      const response = await unsplash.get('/search/photos', {
+        params: {
+          query: term,
+          per_page: 12,
+        },
+      });
+      if (response.data.results) {
+        setSearchImages((prev) => ({
+          ...prev,
+          images: response.data.results,
+        }));
+      } else {
+        console.error('No results found');
+        setSearchImages((prev) => ({
+          ...prev,
+          images: [],
+        }));
+      }
     } catch (error) {
       console.error('Error fetching images:', error);
+      setSearchImages((prev) => ({
+        ...prev,
+        images: [],
+      }));
     } finally {
       setLoading(false);
     }
